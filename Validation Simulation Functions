@@ -1,0 +1,229 @@
+library(msa)
+library(Biostrings)
+library(dplyr)
+library(phybase)
+library(stringr)
+library(seqinr)
+
+#SIMULATE 4 TAXA WITH POISSON
+ sptree="(((A:0.00402#0.01,B:0.00402#0.01):0.00304#0.01,C:0.00707#0.01):0.00929#0.01,D:0.01635#0.01)#0.01;"
+  name=phybase:: species.name(sptree)
+  nodematrix=phybase:: read.tree.nodes(sptree,name)$nodes
+  rootnode=7
+  seq=rep(1000,4)
+  nspecies = 4
+  str<-phybase:: sim.coaltree.sp(rootnode,nodematrix,nspecies,seq,name=name)
+  x <- str$gt
+  treestr <- str_replace_all(x,"s","")
+  migration_rate <- mig_rate
+  popnames <- c("A","B","C","D")
+  popnum <- 4
+  transmatrix <- migration_sim(migration_rate,treestr,popnames,popnum)
+  treestr <- matrix_to_string(transmatrix)
+
+  read.tree.nodes(treestr,species.name(treestr))
+  seqmatrix <- phyclust:: seqgen(opts = "-mHKY -l30000 -op", newick.tree = treestr)
+  
+  seqnames <- transmatrix$name[- grep("<NA>",transmatrix$name)]
+  seqgen2fasta(seqmatrix,seqnames,4000)
+  
+  
+  
+  seqs <- readAAStringSet("out.fasta")
+  my_alignment <- msa(seqs)
+  my_alignment_seq <- msaConvert(my_alignment,type="seqinr::alignment")
+  distance_alignment <- dist.alignment(my_alignment_seq)
+  newickTree <- ape::bionjs(distance_alignment)
+
+  
+  newickTree <- ape::write.tree(newickTree)
+  treestr <- newickTree
+  
+  avgval <- trans_rate_estv4(treestr,popnum,popnames)
+
+#MATRIX TO NEWICK TREE STRING
+matrix_to_string <- function(transmatrix){
+  library(phybase)
+  rootnode <- nrow(transmatrix)
+  
+  names <- subset(transmatrix$name, transmatrix$name != "<NA>")
+ 
+  treestr <- write.subtree(rootnode,transmatrix,names,rootnode)
+  
+  return(treestr)
+}
+
+#SEQGEN TO FASTA FORMAT
+seqgen2fasta <- function(seqmatrix,seqnames,indvnum){
+  sink("out.fasta")
+  x <- 1
+  repeat{
+    cat(">")
+    cat(seqnames[x])
+    cat("\n")
+    seq <- seqmatrix[x+1]
+    seq <- stringi::stri_sub(seq,-10,-1)
+    cat(seq)
+    cat("\n")
+    cat("\n")
+    if(x==indvnum){
+      break
+    }else{
+      x <- x+1
+    }
+  }
+  sink()
+}
+
+#MIGRATION SIMULATION
+migration_sim <- function(migration_rate,treestr,popnames,popnum) {
+  #read in coalescent simulation tree string using Phybase read.tree.nodes function
+  name=phybase:: species.name(treestr)
+  nodematrix=phybase:: read.tree.nodes(treestr,name)$nodes
+  combined=phybase:: read.tree.nodes(treestr,name)
+  nodematrix <- as.data.frame(nodematrix)
+  colnames(nodematrix) <- c("ancestor","son1","son2","brlen","theta","bootstrap","?")
+  
+  #Subset
+  nodematrix$pop <- cbind(nodematrix$pop, ifelse(nodematrix$son1 != "-9",nodematrix$pop == "NODE","TEST"))
+  nodematrixsub <- subset(nodematrix, pop %in% "TEST")
+  nodematrixsub$name <- combined$names
+  x <- 1
+  nodematrixsubnew <- data.frame()
+  nodematrixsubnewx <- data.frame()
+  nodematrixsub <- tibble::rownames_to_column(nodematrixsub)
+  repeat{
+    pop <- nodematrixsub %>%
+      subset(str_detect(nodematrixsub$name, popnames[x]))
+    pop$pop <- x
+    nodematrixsub <- nodematrixsub[!rownames(nodematrixsub) %in% rownames(pop), ]
+    
+    y <- 1
+    popnow <- pop
+    rownames(popnow) <- NULL
+    popnow <- tibble::column_to_rownames(popnow)
+    repeat{
+      if(y==x){
+        NULL
+      } else if(y!=x & y<=popnum){
+        z <- rbinom(1,nrow(popnow),migration_rate)
+        migs <- dplyr:: sample_n(popnow, z)
+        if(nrow(migs)>0){
+          migs$pop <- y
+          migs$name <- tolower(migs$name)
+          popnames <- toupper(popnames)
+          migs$name <- paste(popnames[y],migs$name,sep="")
+          
+          popnow <- popnow[!rownames(popnow) %in% rownames(migs), ]
+          
+          nodematrixsubnew <- rbind(nodematrixsubnew,migs)
+        }
+        
+        
+      }
+      
+      if(y==popnum){
+        popnow$name <- tolower(popnow$name)
+        popnow$name <- paste(popnames[x],popnow$name,sep="")
+        nodematrixsubnew <- rbind(nodematrixsubnew,popnow)
+        break
+        return(nodematrixsubnew)
+      }
+      y <- y+1
+    }
+    if(x==popnum){
+      break
+      return(nodematrixsubnew)
+    }
+    x <- x+1
+  }
+  
+  nodes <- subset(nodematrix, !(nodematrix$pop %in% "TEST"))
+  nodes$pop <- "<NA>"
+  nodes$name <- "<NA>"
+  
+  transmatrix <- rbind(nodematrixsubnew,nodes)
+  rownames(transmatrix) <- 1:nrow(transmatrix)
+  
+  rootnode <- nrow(transmatrix)
+  nsp <- nrow(nodematrixsubnew)
+  
+  return(transmatrix)
+}
+
+#TRANSMISSION RATE ESTIMATION 4 TAXA
+trans_rate_estv4 <- function(treestr,popnum,popnames){
+  names <- species.name(treestr)
+  matrix <- as.data.frame(read.tree.nodes(treestr,species.name(treestr))$nodes)
+  names <- as.data.frame(names)
+  nrownames <- nrow(names)
+  colnames(matrix) <- c("ancestor", "son1", "son2", "brlen", 
+                        "theta", "bootstrap", "?")
+  
+  i <- 1
+  repeat {
+    if (matrix$son1[i] == "-9") {
+      matrix$names[i] <- names[i, ]
+    }
+    r <- (nrownames + 1):nrow(matrix)
+    matrix$names[r] <- "NA"
+    if (i == nrownames) {
+      break
+    }
+    i <- i + 1
+  }
+  matrix$pop1 <- "NA"
+  matrix$pop2 <- "NA"
+  d <- 1
+  repeat {
+    if (str_detect(matrix$names[d], "[:upper:][:lower:]\\d")) {
+      pop1and2names <- (stringr::str_extract_all(matrix$names[d], 
+                                                 "[:upper:][:lower:]\\d"))
+      pop1name <- (stringr::str_extract_all(pop1and2names, 
+                                            "[:upper:]"))
+      matrix$pop1[d] <- pop1name
+      pop2name <- (stringr::str_extract_all(pop1and2names, 
+                                            "[:lower:]"))
+      matrix$pop2[d] <- toupper(pop2name)
+    }
+    if (d == nrow(matrix)) {
+      break
+    }
+    d <- d + 1
+  }
+  transmatrix <- matrix[-grep("NA", matrix$names), ]
+  pop1 <- transmatrix[transmatrix$pop2 %in% popnames[1],]
+  pop2 <- transmatrix[transmatrix$pop2 %in% popnames[2],]
+  pop3 <- transmatrix[transmatrix$pop2 %in% popnames[3],]
+  pop4 <- transmatrix[transmatrix$pop2 %in% popnames[4],]
+  
+  totval <- 0
+  transmatrix <- rbind(pop1,pop2,pop3,pop4)
+  
+  f <- 1
+  repeat {
+    pop <- subset(transmatrix, pop1 %in% popnames[f])
+    divisor <- nrow(pop)
+    g <- 1
+    object1name <- paste("Population", popnames[f], sep = " ")
+    repeat {
+      subpop <- subset(pop, pop$pop2 %in% popnames[g])
+      dividend <- nrow(subpop)
+      object2name <- paste("Population", popnames[g], sep = " ")
+      if (popnames[g] != popnames[f]) {
+        num <- 100 * (dividend/divisor)
+        totval <- totval+num
+      }
+      if (g == popnum) {
+        break
+      }
+      g <- g + 1
+    }
+    if (f == popnum) {
+      break
+    }
+    f <- f + 1
+  }
+  avgval <- totval/12
+  return(avgval)
+}
