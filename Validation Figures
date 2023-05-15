@@ -1,0 +1,111 @@
+tab1 <- read.csv(file.choose())
+tab2 <- read.csv(file.choose())
+tab3 <- read.csv(file.choose())
+tab4 <- read.csv(file.choose())
+data1 <- read.csv(file.choose())
+data2 <- read.csv(file.choose())
+data3 <- read.csv(file.choose())
+
+#TABLE 1
+plot(tab1$input,tab1$est,,col="white",lwd=0,xlab="Migration Rate Input as %", ylab="Transmission Rate Estimation as %")
+lines(tab1$input,tab1$lower,col="#1600f7",lwd=2)
+lines(tab1$input,tab1$est,col="black",lwd=2)
+lines(tab1$input,tab1$upper,col="#d90000",lwd=2)
+legend(x="bottomright",
+       legend=c("Upper Bound","Lower Bound","Transmission Rate"),
+       col=c("#d90000","#1600f7","black"),
+       lwd=2)
+title()
+title(main = "Transmission Rate Estimation Validation 1",
+      cex.main = 2,   font.main= 4, col.main= "black"
+)
+
+#TABLE 2
+plot(tab2$input,tab2$est,,col="white",lwd=0,xlab="Migration Rate Input as %", ylab="Transmission Rate Estimation as %")
+lines(tab2$input,tab2$lower,col="#1600f7",lwd=2)
+lines(tab2$input,tab2$est,col="black",lwd=2)
+lines(tab2$input,tab2$upper,col="#d90000",lwd=2)
+legend(x="bottomright",
+       legend=c("Upper Bound","Lower Bound","Transmission Rate"),
+       col=c("#d90000","#1600f7","black"),
+       lwd=2)
+title()
+title(main = "Transmission Rate Estimation Validation 2",
+      cex.main = 2,   font.main= 4, col.main= "black"
+)
+
+#TABLE 3
+plot(tab3$input,tab3$est,,col="white",lwd=0,xlab="Migration Rate Input as %", ylab="Transmission Rate Estimation as %")
+lines(tab3$input,tab3$lower,col="#1600f7",lwd=2)
+lines(tab3$input,tab3$est,col="black",lwd=2)
+lines(tab3$input,tab3$upper,col="#d90000",lwd=2)
+legend(x="bottomright",
+       legend=c("Upper Bound","Lower Bound","Transmission Rate"),
+       col=c("#d90000","#1600f7","black"),
+       lwd=2)
+title()
+title(main = "Transmission Rate Estimation Validation 3",
+      cex.main = 2,   font.main= 4, col.main= "black"
+)
+
+#TABLE 4
+run1 <- subset(tab4,Percent.Sampled == 80)
+run2 <- subset(tab4,Percent.Sampled == 65)
+run3 <- subset(tab4,Percent.Sampled == 50)
+
+plot(run1$Input.Rate,run1$Estimate,,col="white",lwd=0,xlab="Migration Rate Input as %", ylab="Transmission Rate Estimation as %")
+lines(run2$Input.Rate,run2$Estimate,col="#1600f7",lwd=1)
+lines(run3$Input.Rate,run3$Estimate,col="#d90000",lwd=1)
+lines(run1$Input.Rate,run1$Estimate,col="red",lwd=1)
+legend(x="bottomright",
+       legend=c("80% Sampled","65% Sampled","50% Sampled"),
+       col=c("black","#1600f7","#d90000"),
+       lwd=2)
+title()
+title(main = "Transmission Rate Estimation Validation 4",
+      cex.main = 2,   font.main= 4, col.main= "black"
+)
+
+
+avg0 <- 0
+low0 <- 0
+up0 <- 0
+avg1 <- mean(data[,1])
+sd1 <- sd(data[,1])
+low1 <- 1.0 - abs(((zstar * sd1)/sqrt(400)))
+up1 <- 1.0 + abs(((zstar * sd1)/sqrt(400)))
+
+avg2 <- mean(data2[,1])
+sd2 <- sd(data2[,1])
+low2 <- 2.0 - abs(((zstar * sd2)/sqrt(400)))
+up2 <- 2.0 + abs(((zstar * sd2)/sqrt(400)))
+
+avg3 <- mean(data3[,1])
+sd3 <- sd(data3[,1])
+low3 <- 3.0 - abs(((zstar * sd3)/sqrt(400)))
+up3 <- 3.0 + abs(((zstar * sd3)/sqrt(400)))
+
+avg4 <- mean(data4[,1])
+sd4 <- sd(data4[,1])
+low4 <- 4.0 - abs(((zstar * sd4)/sqrt(400)))
+up4 <- 4.0 + abs(((zstar * sd4)/sqrt(400)))
+
+zstar <- qnorm(0.05,0,1)
+
+#PLOT
+EXPS <- rbind("0","1","2","3")
+LOWS <- rbind(low0,low1,low2,low3)
+UPS <- rbind(up0,up1,up2,up3)
+AVGS <- rbind(avg0,avg1,avg2,avg3)
+plot(EXPS,AVGS,,col="white",lwd=0,xlab="Migration Rate Input as %", ylab="Transmission Rate Estimation as %")
+lines(EXPS,LOWS,col="#1600f7",lwd=2)
+lines(EXPS,AVGS,col="black",lwd=2)
+lines(EXPS,UPS,col="#d90000",lwd=2)
+legend(x="bottomright",
+       legend=c("Upper Bound","Lower Bound","Transmission Rate"),
+       col=c("#d90000","#1600f7","black"),
+       lwd=2)
+title()
+title(main = "Transmission Rate Estimation Validation 4 Taxa",
+      cex.main = 2,   font.main= 4, col.main= "black"
+)
