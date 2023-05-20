@@ -10,7 +10,7 @@ data3 <- read.csv(file.choose())
 
 #TABLE 1
 tab1new <- tab1[c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15),]
-plot(tab1new$input,tab1new$est,,col="white",lwd=0,xlab="Migration Rate Input", ylab="Transmission Rate Estimate")
+plot(tab1new$input,tab1new$est,,col="white",lwd=0,xlab="Transmission Rate Input", ylab="Transmission Rate Estimate")
 lines(tab1new$input,tab1new$lower,col="#1600f7",lwd=2)
 lines(tab1new$input,tab1new$est,col="black",lwd=2)
 lines(tab1new$input,tab1new$upper,col="#d90000",lwd=2)
@@ -25,7 +25,7 @@ title(main = "Transmission Rate Estimation Validation Fixed Two-Taxon Species Tr
 
 #TABLE 2
 tab2new <- tab2[c(1,2,3,4,5,6,7,8,9,10),]
-plot(tab2new$input,tab2new$est,,col="white",lwd=0,xlab="Migration Rate Input", ylab="Transmission Rate Estimate")
+plot(tab2new$input,tab2new$est,,col="white",lwd=0,xlab="Transmission Rate Input", ylab="Transmission Rate Estimate")
 lines(tab2new$input,tab2new$lower,col="#1600f7",lwd=2)
 lines(tab2new$input,tab2new$est,col="black",lwd=2)
 lines(tab2new$input,tab2new$upper,col="#d90000",lwd=2)
@@ -40,7 +40,7 @@ title(main = "Transmission Rate Estimation Validation Uncertainty of Species Tre
 
 #TABLE 3
 tab3new <- tab3[c(1,2,3,4,5,6),]
-plot(tab3new$input,tab3new$est,,col="white",lwd=0,xlab="Migration Rate Input", ylab="Transmission Rate Estimate")
+plot(tab3new$input,tab3new$est,,col="white",lwd=0,xlab="Transmission Rate Input", ylab="Transmission Rate Estimate")
 lines(tab3new$input,tab3new$lower,col="#1600f7",lwd=2)
 lines(tab3new$input,tab3new$est,col="black",lwd=2)
 lines(tab3new$input,tab3new$upper,col="#d90000",lwd=2)
@@ -58,7 +58,7 @@ run1 <- subset(tab4,Percent.Sampled == 80)
 run2 <- subset(tab4,Percent.Sampled == 65)
 run3 <- subset(tab4,Percent.Sampled == 50)
 
-plot(run1$Input.Rate,run1$Estimate,,col="white",lwd=0,xlab="Migration Rate Input", ylab="Transmission Rate Estimate")
+plot(run1$Input.Rate,run1$Estimate,,col="white",lwd=0,xlab="Transmission Rate Input", ylab="Transmission Rate Estimate")
 lines(run2$Input.Rate,run2$Estimate,col="#1600f7",lwd=2)
 lines(run3$Input.Rate,run3$Estimate,col="#d90000",lwd=2)
 lines(run1$Input.Rate,run1$Estimate,col="black",lwd=2)
@@ -103,7 +103,7 @@ EXPS <- rbind("0","1","2","3")
 LOWS <- rbind(low0,low1,low2,low3)
 UPS <- rbind(up0,up1,up2,up3)
 AVGS <- rbind(avg0,avg1,avg2,avg3)
-plot(EXPS,AVGS,,col="white",lwd=0,xlab="Migration Rate Input", ylab="Transmission Rate Estimation")
+plot(EXPS,AVGS,,col="white",lwd=0,xlab="Transmission Rate Input", ylab="Transmission Rate Estimation")
 lines(EXPS,LOWS,col="#1600f7",lwd=2)
 lines(EXPS,AVGS,col="black",lwd=2)
 lines(EXPS,UPS,col="#d90000",lwd=2)
